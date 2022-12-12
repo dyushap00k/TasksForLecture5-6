@@ -41,13 +41,10 @@ public class UtilClass {
                 //если есть аннотация + её имя и тип поля норм, то стринг в студию
                 if(fieldType.equals(String.class) && annotationFieldName != null && annotationFieldName.equals(stringProperty)){
                     field.set(t, stringPropertyValue);
-                    //если есть аннотация + её имя и тип поля норм с лонгом, то лонг гуд
                 } else if (typeIsLongOrInteger && annotationFieldName != null && annotationFieldName.equals(numberProperty)) {
                     field.set(t, numberPropertyValue);
-                    // если есть аннотация имени + её имя вяжется с типом поля, то херачим
                 } else if (fieldType.equals(LocalDateTime.class) && annotationFieldName != null && annotationFieldName.equals(timeProperty)) {
                     field.set(t, LocalDateTime.parse(properties.getProperty(timeProperty), DateTimeFormatter.ofPattern(field.getAnnotation(Property.class).format())));
-                    // если есть аннотация без имени, но имя и тип самого поля вяжется, то делаем красиво
                 } else if (fieldType.equals(LocalDateTime.class) && fieldName.equals(timeProperty)) {
                     field.set(t, LocalDateTime.parse(properties.getProperty(timeProperty), DateTimeFormatter.ofPattern(field.getAnnotation(Property.class).format())));
                 }
