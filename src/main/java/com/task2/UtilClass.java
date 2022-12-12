@@ -38,7 +38,6 @@ public class UtilClass {
             boolean typeIsLongOrInteger = fieldType.equals(int.class)||fieldType.equals(long.class);
             if(hasAnnotation){
                 annotationFieldName = field.getAnnotation(Property.class).name();
-                //если есть аннотация + её имя и тип поля норм, то стринг в студию
                 if(fieldType.equals(String.class) && annotationFieldName != null && annotationFieldName.equals(stringProperty)){
                     field.set(t, stringPropertyValue);
                 } else if (typeIsLongOrInteger && annotationFieldName != null && annotationFieldName.equals(numberProperty)) {
