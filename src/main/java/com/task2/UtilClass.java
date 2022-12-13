@@ -11,63 +11,62 @@ import java.time.format.DateTimeFormatter;
 import java.util.Properties;
 
 public class UtilClass {
-    private static final String STRING_PROPERTY = "stringProperty";
-    private static final String NUMBER_PROPERTY = "numberProperty";
-    private static final String TIME_PROPERTY = "timeProperty";
-
-    public static <T> T toBuild(Class<T> clazz, Path path) throws NoSuchMethodException, IOException, IllegalAccessException, BuildException, InvocationTargetException, InstantiationException {
+    public static <T>T toBuild(Class<T> clazz, Path path) throws NoSuchMethodException, IOException, IllegalAccessException, BuildException, InvocationTargetException, InstantiationException {
         T t = clazz.getDeclaredConstructor().newInstance();
         Properties properties = new Properties();
         FileReader fileReader = new FileReader(path.toFile());
-        fileReader.close();
         properties.load(fileReader);
 
-        String stringPropertyValue = properties.getProperty(STRING_PROPERTY);
-        int numberPropertyValue = Integer.parseInt(properties.getProperty(NUMBER_PROPERTY));
+
+        String stringProperty = "stringProperty";
+        String numberProperty = "numberProperty";
+        String timeProperty = "timeProperty";
+        String stringPropertyValue = properties.getProperty(stringProperty);
+        int numberPropertyValue = Integer.parseInt(properties.getProperty(numberProperty));
+        fileReader.close();
+        boolean hasAnnotation;
+        String fieldName;
+        String annotationFieldName;
+        Type fieldType;
 
         Field[] fields = clazz.getDeclaredFields();
-        for (Field field : fields) {
+        for (Field field: fields) {
             field.setAccessible(true);
-            switch (checkField(field)) {
-                case INCORRECT_FIELD -> throw new BuildException(new Throwable().getCause());
-                case FIELD_STRING_HAS_SUITABLE_NAME -> field.set(t, stringPropertyValue);
-                case FIELD_NUMBER_HAS_SUITABLE_NAME -> field.set(t, numberPropertyValue);
-                case FIELD_STRING_HAS_SUITABLE_ANNOTATION -> field.set(t, stringPropertyValue);
-                case FIELD_NUMBER_HAS_SUITABLE_ANNOTATION -> field.set(t, numberPropertyValue);
-                case FIELD_TIME_HAS_SUITABLE_NAME_OR_SUITABLE_ANNOTATION ->
-                        field.set(t, LocalDateTime.parse(properties.getProperty(TIME_PROPERTY),
-                                DateTimeFormatter.ofPattern(field.getAnnotation(Property.class).format())));
-
+            fieldName = field.getName();
+            fieldType = field.getType();
+            hasAnnotation = field.getAnnotation(Property.class) != null;
+            boolean typeIsLongOrInteger = fieldType.equals(int.class)||fieldType.equals(long.class);
+            if(hasAnnotation){
+                annotationFieldName = field.getAnnotation(Property.class).name();
+                //если есть аннотация + её имя и тип поля норм, то стринг в студию
+                if(fieldType.equals(String.class) && annotationFieldName != null && annotationFieldName.equals(stringProperty)){
+                    field.set(t, stringPropertyValue);
+                    //если есть аннотация + её имя и тип поля норм с лонгом, то лонг гуд
+                } else if (typeIsLongOrInteger && annotationFieldName != null && annotationFieldName.equals(numberProperty)) {
+                    field.set(t, numberPropertyValue);
+                    // если есть аннотация имени + её имя вяжется с типом поля, то херачим
+                } else if (fieldType.equals(LocalDateTime.class) && annotationFieldName != null && annotationFieldName.equals(timeProperty)) {
+                    field.set(t, LocalDateTime.parse(properties.getProperty(timeProperty), DateTimeFormatter.ofPattern(field.getAnnotation(Property.class).format())));
+                    // если есть аннотация без имени, но имя и тип самого поля вяжется, то делаем красиво
+                } else if (fieldType.equals(LocalDateTime.class) && fieldName.equals(timeProperty)) {
+                    field.set(t, LocalDateTime.parse(properties.getProperty(timeProperty), DateTimeFormatter.ofPattern(field.getAnnotation(Property.class).format())));
+                }
+                else {
+                    throw new BuildException(new Throwable().getCause());
+                }
+            }else {
+                if(fieldType.equals(String.class) && fieldName.equals(stringProperty)){
+                    field.set(t, stringPropertyValue);
+                }else if (typeIsLongOrInteger && fieldName.equals(numberProperty)){
+                    field.set(t, numberPropertyValue);
+                }
+                else{
+                    throw new BuildException(new Throwable().getCause());
+                }
             }
 
         }
         return t;
-    }
-
-    private static FieldMatching checkField(Field field) {
-        Type fieldType = field.getType();
-        String fieldName = field.getName();
-        boolean isNumberType = fieldType.equals(int.class) || fieldType.equals(long.class);
-        if (field.getAnnotation(Property.class) == null) {
-            if (fieldType.equals(String.class) && fieldName.equals(STRING_PROPERTY)) {
-                return FieldMatching.FIELD_STRING_HAS_SUITABLE_NAME;
-            } else if (isNumberType && fieldName.equals(NUMBER_PROPERTY)) {
-                return FieldMatching.FIELD_NUMBER_HAS_SUITABLE_NAME;
-            } else {
-                return FieldMatching.INCORRECT_FIELD;
-            }
-        } else if (field.getAnnotation(Property.class) != null) {
-            if (fieldType.equals(String.class) && field.getAnnotation(Property.class).name().equals(STRING_PROPERTY)) {
-                return FieldMatching.FIELD_STRING_HAS_SUITABLE_ANNOTATION;
-            } else if (isNumberType && field.getAnnotation(Property.class).name().equals(NUMBER_PROPERTY)) {
-                return FieldMatching.FIELD_NUMBER_HAS_SUITABLE_ANNOTATION;
-            } else if (fieldType.equals(LocalDateTime.class) && (fieldName.equals(TIME_PROPERTY) || field.getAnnotation(Property.class).name().equals("timeProperty"))) {
-                return FieldMatching.FIELD_TIME_HAS_SUITABLE_NAME_OR_SUITABLE_ANNOTATION;
-            } else {
-                return FieldMatching.INCORRECT_FIELD;
-            }
-        }
-        return FieldMatching.INCORRECT_FIELD;
     }
 }
 
