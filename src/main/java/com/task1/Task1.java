@@ -89,10 +89,10 @@ public class Task1 {
     }
 
     private static void createResultXmlFile() throws JAXBException {
-        List<task3.Fine> list = new ArrayList<>();
+        List<Fine> list = new ArrayList<>();
         CONTAINER.entrySet().stream()
                 .sorted(Map.Entry.<String, BigDecimal>comparingByValue().reversed())
-                .forEach(x -> list.add(new task3.Fine(x.getKey(), x.getValue())));
+                .forEach(x -> list.add(new Fine(x.getKey(), x.getValue())));
         FINE_LIST.getList().addAll(list);
         JAXBContext jaxbContext = JAXBContext.newInstance(FineList.class);
         Marshaller marshaller = jaxbContext.createMarshaller();

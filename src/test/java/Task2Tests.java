@@ -4,7 +4,6 @@ import com.task2.ExampleClass2;
 import com.task2.UtilClass;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import task2.*;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
