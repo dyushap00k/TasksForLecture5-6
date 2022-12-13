@@ -19,9 +19,8 @@ public class UtilClass {
         T t = clazz.getDeclaredConstructor().newInstance();
         Properties properties = new Properties();
         FileReader fileReader = new FileReader(path.toFile());
-        fileReader.close();
         properties.load(fileReader);
-
+        fileReader.close();
         String stringPropertyValue = properties.getProperty(STRING_PROPERTY);
         int numberPropertyValue = Integer.parseInt(properties.getProperty(NUMBER_PROPERTY));
 
